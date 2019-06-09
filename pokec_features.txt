@@ -1,0 +1,81 @@
+
+x not useful(absolutely sure) or to hard to extract
+y can be extracted
+- could be extracted with more effort
+
+1. x   user_id 	
+2. y   public
+3. y   completion_percentage
+4. y   gender
+5. y   region
+6. y   last_login
+7. y   registration
+8. y   AGE
+9. y   body (height, weight)
+10. x   I_am_working_in_field
+11. -   spoken_languages
+12. x   hobbies
+13. x   I_most_enjoy_good_food
+14. x   pets
+15. -   body_type
+16. x   my_eyesight
+17. -   eye_color
+18. -   hair_color
+19. -   hair_type
+20. -   completed_level_of_education
+21. x   favourite_color
+22. -   relation_to_smoking
+23. -   relation_to_alcohol
+24. x   sign_in_zodiac
+25. x   on_pokec_i_am_looking_for
+26. x   love_is_for_me
+27. x   relation_to_casual_sex
+28. x   my_partner_should_be
+29. -   marital_status
+30. x  children
+31. x  relation_to_children
+32. --   I_like_movies
+33. x   I_like_watching_movie
+34. x   I_like_music
+35. x    I_mostly_like_listening_to_music
+36. x    the_idea_of_good_evening
+37. x    I_like_specialties_from_kitchen
+38. x    fun
+39. x    I_am_going_to_concerts
+40. --    my_active_sports
+41. x    my_passive_sports
+42. -sam    profession
+43. x   I_like_books
+44. x   life_style
+45. x    music
+46. x   cars
+47. x    politics
+48. x    relationships
+49. x    art_culture
+50. x    hobbies_interests
+51. x    science_technologies
+52. x    computers_internet
+-------------------
+53.    education
+54.     sport
+55.     movies
+56.     travelling
+57.     health
+58.     companies_brands
+59. more
+
+feature baseline:
+
+public
+completion_percentage
+gender
+last_login 	
+registration	
+height 	
+weight 	
+region 	
+smoking
+martial status
+completed lvl of education
+
+
