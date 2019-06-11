@@ -13,7 +13,10 @@ def process(file_in, file_out):
         regist = conv.convert(features[6], conv.date_transform)
         height, weight = exhw.extract_height_weight(features[8])
 
-        out_features = [user_id, last_login, regist, weight, height]
+        smoke_keywords = [('nefajcim', 0), ('fajcim', 1)]
+        smoking = conv.relable(features[21], smoke_keywords)
+
+        out_features = [user_id, last_login, regist, weight, height, smoking]
         file_out.write('\t'.join(map(str, out_features))+'\n')
 
 

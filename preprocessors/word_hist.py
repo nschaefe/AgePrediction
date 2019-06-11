@@ -2,15 +2,8 @@ import numpy as np
 import re
 import string
 import operator
-
-translator = str.maketrans(string.punctuation, ' '*len(string.punctuation))
-
-def get_words(text):
-    res = text.translate(translator).split()
-    #res = re.sub('['+string.punctuation+']', ' ', text).split()
-    for i in range(0, len(res)):
-        res[i] = res[i].strip()
-    return res
+from utils import get_words
+from feature_converter import relable
 
 
 def get_bag_of_symbols(max_len, string):
@@ -44,29 +37,9 @@ def get_word_hist(data, symbol_length):
     return sorted_hist
 
 
-def relable(data, keywords):
-    for i in range(0, len(data)):
-        label = data[i]
-        clean_label = ' '.join(get_words(label))
-
-        labeled = False
-        for keyword in keywords:
-            if keyword in clean_label:
-                data[i] = keyword
-                labeled = True
-                break
-        if not labeled:
-            data[i] = 'null'
-
-
 feature_file = "../data/smoking"
 text_file = open(feature_file, "r")
 data = text_file.read().split('\n')
 symbol_length = 2
 
 hist = get_word_hist(data, symbol_length)
-
-# example for relabeling
-# keywords = ['nefajcim', 'fajcim pravidelne', 'fajcim prilezitostne', 'fajcim']
-# relable(data, keywords)
-# print(data[:10])
