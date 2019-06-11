@@ -1,5 +1,4 @@
-import feature_converter as conv
-import extract_height_weight as exhw
+import feature_transform as trans
 import sys
 import getopt
 
@@ -9,12 +8,13 @@ def process(file_in, file_out):
         features = line.split('\t')
 
         user_id = features[0]
-        last_login = conv.convert(features[5], conv.date_transform)
-        regist = conv.convert(features[6], conv.date_transform)
-        height, weight = exhw.extract_height_weight(features[8])
+        last_login = trans.transform(features[5], trans.date_transformer)
+        regist = trans.transform(features[6], trans.date_transformer)
+        height, weight = trans.body_to_height_weight_transform(features[8])
 
         smoke_keywords = [('nefajcim', 0), ('fajcim', 1)]
-        smoking = conv.relable(features[21], smoke_keywords)
+        smoking = trans.transform(
+            features[21], lambda v: trans.relable_transformer(v, smoke_keywords))
 
         out_features = [user_id, last_login, regist, weight, height, smoking]
         file_out.write('\t'.join(map(str, out_features))+'\n')
