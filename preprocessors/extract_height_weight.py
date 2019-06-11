@@ -28,27 +28,5 @@ def extract_height_weight(body_field):
         weight = 'null'
     
     return height, weight 
-def get_body_from_profile(line):
-    """
-    Takes as input line representing one row of pokec profile and
-    returns body feature (no 9)
-    """
-    split_line = line.split('\t')
-    body = split_line[8]
-    return body
 
-def run_height_weight_extractor(data_path, out_path):
-    """ Runs the height_weight_extractor function on the pokec profile
-    data. Mostly used for debugging as this also prints the input
-    data from pokec.
-    example:
-    run_height_weight_extractor('./data/soc-pokec-profiles.txt', './data/body_processd')
-
-    """
-    f = open(data_path)
-    out_file = open(out_path, 'w')
-    for line in f:
-        body = get_body_from_profile(line)
-        height, weight = extract_height_weight(body)
-        out_file.write('processed: {}\t{}, \tinput: {}\n'.format(height, weight, body))
 
