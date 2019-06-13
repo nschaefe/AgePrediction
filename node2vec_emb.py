@@ -6,7 +6,8 @@ EMBEDDING_FILENAME = './embeddings.emb'
 EMBEDDING_MODEL_FILENAME = './embeddings.model'
 
 # Create a graph
-graph = nx.fast_gnp_random_graph(n=100, p=0.5)
+# graph = nx.fast_gnp_random_graph(n=100, p=0.5)
+graph = nx.read_edgelist('dataset/soc-pokec-relationships.txt', delimiter='\t', nodetype=int)
 
 # Precompute probabilities and generate walks
 node2vec = Node2Vec(graph, dimensions=64, walk_length=30,
