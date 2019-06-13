@@ -5,7 +5,7 @@ from utils import get_words
 def date_transformer(value):
     # 2012-05-25 11:20:00.0
     date = datetime.datetime.strptime(value.split()[0],  '%Y-%m-%d')
-    return date.timestamp()
+    return (int)(date.timestamp())
 
 def body_to_height_weight_transform(body_field):
     """Extract height and weight from pokec body field
@@ -48,8 +48,9 @@ def relable_transformer(val,keywords):
 
 
 def transform(val, transformer):
-    if val != "null" and val != '':
-        val = transformer(val)
-    return val
+    if val == "null" or val == " " :
+        return "null"
+   
+    return transformer(val)
 
 
