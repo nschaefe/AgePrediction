@@ -3,7 +3,6 @@ import re
 import string
 import operator
 from utils import get_words
-from feature_converter import relable
 
 
 def get_bag_of_symbols(max_len, string):
@@ -33,13 +32,13 @@ def get_word_hist(data, symbol_length):
 
     sorted_hist = sorted(
         hist.items(), key=operator.itemgetter(1), reverse=True)
-    print(sorted_hist[:10])
+    print(sorted_hist[:50])
     return sorted_hist
 
 
-feature_file = "../data/smoking"
+feature_file = "../../data/compl_edu"
 text_file = open(feature_file, "r")
 data = text_file.read().split('\n')
-symbol_length = 2
+symbol_length = 3
 
 hist = get_word_hist(data, symbol_length)

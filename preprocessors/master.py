@@ -12,7 +12,7 @@ import getopt
 def process(file_in, file_out):
     seperator_write = '\t'
     file_out.write(seperator_write.join(
-        ["user_id", "public", "completion_percentage", "last_login", "gender", "registration",  "height", "weight", "smoking"])+'\n')
+        ["user_id", "public", "completion_percentage", "last_login", "gender", "registration",  "height", "weight", "comp_edu", "smoking", "martial", "age"])+'\n')
 
     for line in file_in:
         features = line.split('\t')
@@ -23,14 +23,45 @@ def process(file_in, file_out):
         gender = features[3]
         last_login = trans.transform(features[5], trans.date_transformer)
         regist = trans.transform(features[6], trans.date_transformer)
+        age = trans.transform(features[7], trans.int_transform)
         height, weight = trans.body_to_height_weight_transform(features[8])
+
+        # stredoskolske sec school
+        # zakladne basic
+        # -- appear together
+
+        # vysokoskolske academic
+        # ucnovske trainee
+        # studujem student
+        # student student
+        # pracuje working
+        # bakalarske ?
+
+        compl_edu_keywords = [('stredoskolske', 0), ('zakladne', 0), ('vysokoskolske', 1),
+                              ('ucnovske', 2), ('studujem', 3),('student', 3), ('pracuje', 4),('bakalarske', 5)]
+        comp_edu = trans.transform(
+            features[19], lambda v: trans.relable_transformer(v, compl_edu_keywords))
 
         smoke_keywords = [('nefajcim', 0), ('fajcim', 1)]
         smoking = trans.transform(
             features[21], lambda v: trans.relable_transformer(v, smoke_keywords))
 
+        # vztah relation
+        # single no
+        # slobodny no
+        # zenaty married
+        # vdovec witwe
+        # vdova witwe
+        # rozvedeny seperated
+        # zadany set
+        # zadana set
+        martial_keywords = [('zadana', 0),('zadany', 0),('vztah', 0), ('single', 1), ('slobodny', 1),('slobodna', 1),
+                            ('zenaty', 2), ('vdovec', 3), ('vdova', 3), ('rozvedeny', 4)]
+        martial = trans.transform(
+            features[28], lambda v: trans.relable_transformer(v, martial_keywords))
+
         out_features = [user_id, public, completion_percentage,
-                        gender, last_login, regist, height, weight, smoking]
+                        gender, last_login, regist, height, weight, comp_edu, smoking, martial, age]
         file_out.write(seperator_write.join(map(str, out_features))+'\n')
 
 

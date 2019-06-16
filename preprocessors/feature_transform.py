@@ -7,6 +7,7 @@ def date_transformer(value):
     date = datetime.datetime.strptime(value.split()[0],  '%Y-%m-%d')
     return (int)(date.timestamp())
 
+
 def body_to_height_weight_transform(body_field):
     """Extract height and weight from pokec body field
     parameters:
@@ -21,7 +22,7 @@ def body_to_height_weight_transform(body_field):
             height = tokens[0]
             # remove units
             height = ''.join(c for c in height if c.isdigit())
-        else:                             
+        else:
             height = 'null'
     else:
         height = 'null'
@@ -35,22 +36,32 @@ def body_to_height_weight_transform(body_field):
             weight = 'null'
     else:
         weight = 'null'
-    
-    return height, weight 
+
+    return height, weight
 
 
-def relable_transformer(val,keywords):
-    val = ' '.join(get_words(val))
+def int_transform(val):
+    num = (int)(val)
+    # TODO analyze outliers later
+    if num > 0:
+        return num
+    else:
+        return "null"
+
+
+def relable_transformer(val, keywords, no_hit_to_null=True):
+    val_clean = ' '.join(get_words(val))
     for keyword, repl in keywords:
-        if keyword in val:
+        if keyword in val_clean:
             return repl
-    return "null"
+    if no_hit_to_null:
+        return "null"
+    else:
+        return val
 
 
 def transform(val, transformer):
-    if val == "null" or val == " " :
+    if val == "null" or val == " ":
         return "null"
-   
+
     return transformer(val)
-
-
