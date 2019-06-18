@@ -12,7 +12,7 @@ import getopt
 def process(file_in, file_out):
     seperator_write = '\t'
     file_out.write(seperator_write.join(
-        ["user_id", "public", "completion_percentage", "last_login", "gender", "registration",  "height", "weight", "comp_edu", "smoking", "martial", "age"])+'\n')
+        ["user_id", "public", "completion_percentage", "gender","last_login", "registration",  "height", "weight", "comp_edu", "smoking", "martial", "age"])+'\n')
 
     for line in file_in:
         features = line.split('\t')
