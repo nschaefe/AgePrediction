@@ -38,7 +38,7 @@ def process(file_in, file_out):
         # bakalarske ?
 
         compl_edu_keywords = [('stredoskolske', 0), ('zakladne', 0), ('vysokoskolske', 1),
-                              ('ucnovske', 2), ('studujem', 3),('student', 3), ('pracuje', 4),('bakalarske', 5)]
+                              ('ucnovske', 2), ('studujem', 3), ('student', 3), ('pracuje', 4), ('bakalarske', 5)]
         comp_edu = trans.transform(
             features[19], lambda v: trans.relable_transformer(v, compl_edu_keywords))
 
@@ -55,7 +55,7 @@ def process(file_in, file_out):
         # rozvedeny seperated
         # zadany set
         # zadana set
-        martial_keywords = [('zadana', 0),('zadany', 0),('vztah', 0), ('single', 1), ('slobodny', 1),('slobodna', 1),
+        martial_keywords = [('zadana', 0), ('zadany', 0), ('vztah', 0), ('single', 1), ('slobodny', 1), ('slobodna', 1),
                             ('zenaty', 2), ('vdovec', 3), ('vdova', 3), ('rozvedeny', 4)]
         martial = trans.transform(
             features[28], lambda v: trans.relable_transformer(v, martial_keywords))
@@ -72,23 +72,12 @@ def main(argv):
     if len(argv) != 2:
         print('master.py  <inputfile>  <outputfile>')
         sys.exit(2)
-    try:
-        opts, args = getopt.getopt(argv, "h", ["ifile=", "ofile="])
-    except getopt.GetoptError:
-        print('master.py  <inputfile>  <outputfile>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('master.py  <inputfile>  <outputfile>')
-            sys.exit()
-        elif opt in ("--ifile"):
-            inputfile = arg
-        elif opt in ("--ofile"):
-            outputfile = arg
+
+    inputfile = argv[0]
+    outputfile = argv[1]
 
     file_in = open(inputfile)
     file_out = open(outputfile, 'w')
-
     process(file_in, file_out)
 
 
