@@ -1,6 +1,7 @@
 import datetime
 from utils import get_words
 
+na_value='NA'
 
 def date_transformer(value):
     # 2012-05-25 11:20:00.0
@@ -14,7 +15,7 @@ def body_to_height_weight_transform(body_field):
     body_field: This is a string containing the body field
     returns
     height in cm and weight in kg. if the fields are not available
-    in the dataset then a string of value 'null' is returned
+    in the dataset then a string of value na_value is returned
     """
     tokens = body_field.split(',')
     if(len(tokens) > 0):
@@ -23,9 +24,9 @@ def body_to_height_weight_transform(body_field):
             # remove units
             height = ''.join(c for c in height if c.isdigit())
         else:
-            height = 'null'
+            height = na_value
     else:
-        height = 'null'
+        height = na_value
 
     if(len(tokens) > 1):
         if('kg' in tokens[1]):
@@ -33,9 +34,9 @@ def body_to_height_weight_transform(body_field):
             # remove units
             weight = ''.join(c for c in weight if c.isdigit())
         else:
-            weight = 'null'
+            weight = na_value
     else:
-        weight = 'null'
+        weight = na_value
 
     return height, weight
 
@@ -46,7 +47,10 @@ def int_transform(val):
     if num > 0:
         return num
     else:
-        return "null"
+        return na_value
+
+def id_transform(val):
+    return val
 
 
 def relable_transformer(val, keywords, no_hit_to_null=True):
@@ -55,13 +59,13 @@ def relable_transformer(val, keywords, no_hit_to_null=True):
         if keyword in val_clean:
             return repl
     if no_hit_to_null:
-        return "null"
+        return na_value
     else:
         return val
 
 
 def transform(val, transformer):
     if val == "null" or val == " ":
-        return "null"
+        return na_value
 
     return transformer(val)

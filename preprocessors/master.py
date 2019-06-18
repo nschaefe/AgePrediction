@@ -17,10 +17,10 @@ def process(file_in, file_out):
     for line in file_in:
         features = line.split('\t')
 
-        user_id = features[0]
-        public = features[1]
-        completion_percentage = features[2]
-        gender = features[3]
+        user_id = trans.transform(features[0],trans.id_transform)
+        public = trans.transform(features[1],trans.id_transform)
+        completion_percentage = trans.transform(features[2],trans.id_transform)
+        gender = trans.transform(features[3],trans.id_transform)
         last_login = trans.transform(features[5], trans.date_transformer)
         regist = trans.transform(features[6], trans.date_transformer)
         age = trans.transform(features[7], trans.int_transform)
