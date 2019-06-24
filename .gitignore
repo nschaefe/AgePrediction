@@ -2,6 +2,11 @@
 # dataset
 data
 data/*
+snap
+.idea
+runs
+dataset
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
