@@ -67,7 +67,7 @@ def process(file_in, file_out):
 
 def main(argv):
     inputfile = "../../data/soc-pokec-profiles.txt"
-    outputfile = "../../data/out"
+    outputfile = "../../data/out.csv"
 
     if len(argv) != 2:
         print('master.py  <inputfile>  <outputfile>')
