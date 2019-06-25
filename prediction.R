@@ -16,6 +16,26 @@ d=load_dataset(pokec.path,emb.path)
 sapply(d, class)
 d$user_id=NULL
 
+
+#-------------------undersampling---------------
+d.equalized=d
+
+h=hist(d$age, bins=max(d$age))
+h$breaks
+mean_bin_count=mean(h$counts) # can be adjusted to hit tgt set size
+diffs=max(0,h$counts-mean_bin_count)
+
+for (age_i in h$breaks){
+age=d.equalized$age
+age$index=seq.int(nrow(age))
+
+rows_with_age=age[age$age==age_i,]
+del_selection=rows_with_age[1:diffs[age_i]]
+d.equalized=d.equalized[-del_selection,]
+}
+#-----------------------------------------------
+
+
 is_train <- createDataPartition(d$age, p=0.1,list=FALSE)
 train <- d[ is_train,]
 test  <- d[-is_train,]
