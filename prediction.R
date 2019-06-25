@@ -53,27 +53,38 @@ train <- train[ -is_valid,]
 train.matrix <- model.matrix(age ~., data=train)
 valid.matrix <- model.matrix(age ~., data=valid)
 
-lambda = 1000
-lasso= glmnet(train.matrix,as.matrix(train$age), alpha =1, lambda =lambda)
+# lambda_grid= seq(0.01, 0.1 , by=0.01)
+lambda_grid <- c(0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.5, 0.8, 1, 1.5, 2, 3, 5)
+lambda_grid$res <- 0
+for (i in 1:nrow(lambda_grid)) {
+  lamb <- lambda_grid[i]
+  lasso <- glmnet(train.matrix, as.matrix(train$age), alpha = 1, lambda = lamb)
 
-rf = randomForest(age~.,data=train, ntree = 200, importance = TRUE)
+  model <- lasso
 
-boost = xgboost(data = train.matrix, label =train$age, 
-               eta = 0.1,
-               max_depth = 15, 
-               nround=500  ,
-               objective = "reg:linear",
-               nthread = 4
+  age_pred <- predict(model, valid.matrix)
+  RMSE.valid <- rmse(as.matrix(age_pred), as.matrix(valid$age))
+  lambda_grid$res[i] <- RMSE.valid
+}
+hyper_res <- lambda_grid[lambda_grid$res == min(lambda_grid$res)]
+
+#----------------------- TODO 
+rf <- randomForest(age ~ ., data = train, ntree = 200, importance = TRUE)
+
+boost <- xgboost(
+  data = train.matrix, label = train$age,
+  eta = 0.1,
+  max_depth = 15,
+  nround = 500,
+  objective = "reg:linear",
+  nthread = 4
 )
 
-model=boost
 
-age_pred=predict(model,valid.matrix)
 hist(age_pred)
 hist(valid$age)
+ME.valid <- me(as.matrix(age_pred), as.matrix(valid$age))
 
-RMSE.valid=rmse(as.matrix(age_pred),as.matrix(valid$age))
-ME.valid=me(as.matrix(age_pred),as.matrix(valid$age))
+age_pred <- predict(model, test)
+MSE.test <- rmse(age_pred, as.matrix(test$age))
 
-age_pred=predict(model,test)
-MSE.test=rmse(age_pred,as.matrix(test$age))
