@@ -1,5 +1,6 @@
 import datetime
 from utils import get_words
+import re
 
 na_value='NA'
 
@@ -17,32 +18,38 @@ def body_to_height_weight_transform(body_field):
     height in cm and weight in kg. if the fields are not available
     in the dataset then a string of value na_value is returned
     """
-    # TODO 168cm11 -> 16811
-    # TODO 175cm, 86 -> 175, NA
+    # TODO 168cm11 -> 16811 
+    # TODO 175cm, 86 -> 175, NA : This case seems too specific to solve
+    # Trying to solve this might cause more problems.
     # TODO 'vyska tak nad 170cm a vaha? kolem 60kg' -> 17060, NA
 
     # make sure that value fits in int
     max_val=10000
 
-    tokens = body_field.split(',')
-    height = na_value
-    if(len(tokens) > 0):
-        if('cm' in tokens[0]):
-            height = tokens[0]
-            # remove units
-            height = ''.join(c for c in height if c.isdigit())
-            if(not height or (int)(height) >  max_val):
-                height=na_value
-    
-    weight = na_value
-    if(len(tokens) > 1):
-        if('kg' in tokens[1]):
-            weight = tokens[1]
-            # remove units
-            weight = ''.join(c for c in weight if c.isdigit())
-            if(not weight or (int)(weight) >  max_val):
-               weight=na_value
+    max_height, min_height = 250, 50
+    max_weight, min_weight = 400, 25 
+    height_program = re.compile(r"[0-9]+(\s*)cm")
+    weight_program = re.compile(r"[0-9]+(\s*)kg")
 
+    height = re.search(height_program, body_field) # Search for the pattern
+    if height is None:
+        height = na_value
+    else:
+        height = height.group(0) # take first match
+        height = re.sub('cm', '', height) # remove unit
+        # Finally check outlier
+        if int(height) >= max_height or int(height) <= min_height:
+            height = na_value
+
+    weight = re.search(weight_program, body_field)
+    if weight is None:
+        weight = na_value
+    else:
+        weight = weight.group(0)
+        weight = re.sub('kg', '', weight)
+        if int(weight) >= max_weight or int(weight) <= min_weight:
+            weight = na_value
+            
     return height, weight
 
 
