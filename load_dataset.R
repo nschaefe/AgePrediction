@@ -33,8 +33,6 @@ h=hist(d.equalized$age, breaks=(max(d.equalized$age)))
 mean_bin_count=size_per_age
 counts=c(0,h$counts[1:length(h$counts)])
 diffs=pmax(0,counts-mean_bin_count)
-counts
-diffs
 
 
 for (age_i in 1:length(diffs)){
