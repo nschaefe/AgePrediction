@@ -10,14 +10,37 @@ import os
 
 # Model: Simple fully connected neural network
 class FCN(nn.Module):
-    def __init__(self, hiddens=[256, 16], indim=128):
+    def __init__(self, hiddens=[128], indim=128):
         super(FCN, self).__init__()
         layers = []
         layers.append(nn.Linear(indim, hiddens[0]))
+        # layers.append(nn.BatchNorm1d(hiddens[0]))
         layers.append(nn.ReLU())
         for i in range(1, len(hiddens)):
             layers.append(nn.Linear(hiddens[i - 1], hiddens[i]))
+            # layers.append(nn.BatchNorm1d(hiddens[i]))
             layers.append(nn.ReLU())
+        # Output layer should be 1 as this is regression
+        layers.append(nn.Linear(hiddens[-1], 1))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
+
+# Model: Simple fully connected neural network
+class FCNDropout(nn.Module):
+    def __init__(self, hiddens=[128], indim=128):
+        super(FCNDropout, self).__init__()
+        layers = []
+        layers.append(nn.Linear(indim, hiddens[0]))
+        layers.append(nn.ReLU())
+        layers.append(nn.Dropout(p=0.3))
+        for i in range(1, len(hiddens)):
+            layers.append(nn.Linear(hiddens[i - 1], hiddens[i]))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(p=0.5))
         # Output layer should be 1 as this is regression
         layers.append(nn.Linear(hiddens[-1], 1))
         self.layers = nn.Sequential(*layers)
@@ -32,6 +55,7 @@ class FCN(nn.Module):
 # Train function
 def train(epoch, net, dataloader, criterion, optimizer, batch_size, writer, global_iteration):
     print('Epoch[{}]'.format(epoch))
+    net.train()
     for i_batch, batch in enumerate(dataloader):
         global_iteration += 1 # Needed to store a scalar in tensorboard
         optimizer.zero_grad()
@@ -49,6 +73,7 @@ def train(epoch, net, dataloader, criterion, optimizer, batch_size, writer, glob
 
 def validate(epoch, net, dataloader, criterion, batch_size, writer, global_iteration):
     print('Epoch[{}] Validating'.format(epoch))
+    net.eval()
     total_loss = 0.0
     age_diff = 0.0
     for i_batch, batch in enumerate(dataloader):
@@ -58,20 +83,24 @@ def validate(epoch, net, dataloader, criterion, batch_size, writer, global_itera
             ybatch = batch[1]
             ypred = net(xbatch)
             loss = criterion(ypred, ybatch.view((ybatch.shape[0], 1)))
-            age_diff += torch.mean(torch.abs(ypred - ybatch))
+            age_diff += torch.mean(torch.abs(ypred - ybatch.view((ybatch.shape[0], 1))))
             writer.add_scalar('validation_loss_batch', loss.item(), global_iteration)
             total_loss += loss.item()
     avg_agediff = age_diff / (i_batch + 1)
+    avg_loss = total_loss/ ( i_batch + 1)
     writer.add_scalar('age_difference', avg_agediff, epoch)
     print('Epoch[{}] average validation loss = {}, average age difference = {}'.format(
         epoch,
-        total_loss/ ( i_batch + 1),
+        avg_loss,
         avg_agediff))
-    return avg_agediff  # Used as a measure of accuracy
+    return {'avg_age_diff': avg_agediff,
+            'avg_loss': avg_loss,
+            'predictions': None}
 
 
 def test(epoch, net, dataloader, criterion, batch_size, writer, global_iteration):
     print('Epoch[{}] Validating'.format(epoch))
+    net.eval()
     total_loss = 0.0
     age_diff = 0.0
     recorded_predictions = []
@@ -83,7 +112,7 @@ def test(epoch, net, dataloader, criterion, batch_size, writer, global_iteration
             ypred = net(xbatch)
             recorded_predictions.append(torch.stack((ybatch, ypred.squeeze(1)), 1)) # save all the predictions ang ground truth
             loss = criterion(ypred, ybatch.view((ybatch.shape[0], 1)))
-            age_diff += torch.mean(torch.abs(ypred - ybatch))
+            age_diff += torch.mean(torch.abs(ypred - ybatch.view((ybatch.shape[0], 1))))
             writer.add_scalar('validation_loss_batch', loss.item(), global_iteration)
             total_loss += loss.item()
     avg_agediff = age_diff / (i_batch + 1)
@@ -98,6 +127,7 @@ def test(epoch, net, dataloader, criterion, batch_size, writer, global_iteration
 
 def write_test_output(epoch, test_out, save_dir):
     """
+    Helper function that writes age predictions on a test set to a file
     :param epoch: global epoch number
     :param test_out: dictionary of the form
         {
@@ -125,17 +155,51 @@ def save_model(net, save_dir,  final=False):
         torch.save(net.state_dict(), os.path.join(save_dir, 'final_model.pt'))
     else:
         torch.save(net.state_dict(), os.path.join(save_dir, 'best_model.pt'))
-        # This is the best model sofar
+        # This is the best model so far
 
 
-def main():
+def save_run(save_dict, save_dir):
+    """
+    Saves all the stats in the save_dict of a run to a file.
+    :param save_dict: dictionary containing
+    :param save_dir:
+    :return:
+    """
+    with open(os.path.join(save_dir, 'run_description.txt'), 'w') as f:
+
+        keys_to_print = ['net', 'total_epochs', 'batch_size', 'best_validation_loss']
+        for k in keys_to_print:
+            print("_"*65, file=f)
+            print(k, file=f)
+            print(save_dict[k], file=f)
+        print("_" * 65, file=f)
+        print('test_loss', file=f)
+        print(save_dict['test_out']['avg_loss'], file=f)
+        print("_" * 65, file=f)
+        print('avg_age_diff', file=f)
+        print(save_dict['test_out']['avg_age_diff'], file=f)
+
+    os.mkdir(os.path.join(save_dir, 'test_output'))  # This directory stores output of inference on the test set
+    write_test_output(save_dict['total_epochs'], save_dict['test_out'], save_dir)
+    save_model(save_dict['net'], save_dir, final=True)
+
+
+def main(hiddens, run_dir):
+    """
+    Does one complete run with the supplied hyperparameters (train, validate and test)
+    :param hiddens: Number of hidden layers
+    :return:
+    """
     #  Some parameters
     batch_size = 2048
-    total_epochs = 200
-    valid_epoch, save_epoch = 5, 5
-    save_dir = os.path.join('./runs/', 'run-'+datetime.now().strftime('%d_%m_%y_%H%M%S'))
+    total_epochs = 20
+    valid_epoch, save_epoch = 1, 5
+    run_id = 'run-' + datetime.now().strftime('%d_%m_%y_%H%M%S')
+    save_dict = {}  # this dict stores the parameters we want to save
+    save_dict['batch_size'] = batch_size
+    save_dict['total_epochs'] = total_epochs
+    save_dir = os.path.join('./runs/', run_dir, run_id)
     os.mkdir(save_dir)
-    os.mkdir(os.path.join(save_dir, 'test_output'))  # This directory stores output of inference on the test set
     # For stats
     writer = SummaryWriter(log_dir=save_dir)
     train_iteration , val_iteration = 0, 0
@@ -154,31 +218,58 @@ def main():
     trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     valloader = DataLoader(valset, batch_size=batch_size)
     testloader = DataLoader(testset, batch_size=batch_size)
-    net = FCN()
+    net = FCN(hiddens)
     net.cuda()
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
+    # optimizer = torch.optim.SGD(net.parameters(), lr=1e-4, momentum=0.9)
+    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4,  weight_decay=1e-5)
+    # Write parameters to a file
 
-    best_error = 9e10
+    best_valloss = 9e10  # Intitialize this to  be very large
     # Main training loop
     for i in range(total_epochs):
         train_iteration = train(i, net, trainloader, criterion, optimizer, batch_size, writer, train_iteration)
 
         # Check if this is the epoch to validate
         if i % valid_epoch == 0:
-            error = validate(i, net, valloader, criterion, batch_size, writer, train_iteration)
-            if error < best_error:
-                best_error = error
+            val_out = validate(i, net, valloader, criterion, batch_size, writer, train_iteration)
+            error = val_out['avg_loss']
+            if error < best_valloss:
+                best_valloss = error
                 save_model(net, save_dir, final=False)  # save best model similar to early stopping
-
+                # This is a hack. we do inference for the model that gives the best validation error
+                test_out = test(i, net, testloader, criterion, batch_size, writer, train_iteration)
             # Run on test set and save predictions
-            test_out = test(i, net, testloader, criterion, batch_size, writer, train_iteration)
-            write_test_output(i, test_out, save_dir)
-            i -= 1
     # Save the last model
-    save_model(net, save_dir, final=True)
+    save_dict['best_validation_loss'] = best_valloss
+    save_dict['test_out'] = test_out  # this is a dict containing test loss, test me, and predictions
+    save_dict['net'] = net
+    save_run(save_dict, save_dir)
 
+
+# Hyper parameter optimization.
+# run main passing in hyper parameter that we optimize for
+def optimize_layers(indim=128):
+    run_dir = 'wtdecay'
+    pth = os.path.join('runs', run_dir)
+    if not os.path.exists(pth):
+        os.mkdir(pth)
+
+    num_layers = [1, 2, 3, 4, 8, 12]
+
+    for layer_count in num_layers:
+        hiddens = [256]  # first layer always has 128
+        # Subsequent layers have neurons decreasing by a factor of 2
+        neuron_num = indim
+        for i in range(1, layer_count):
+            neuron_num /= 2
+            if neuron_num < 2:
+                break
+            hiddens += [int(neuron_num)]
+        # Build neural network with this config
+        print(hiddens)
+        main(hiddens, run_dir=run_dir)
 
 
 if __name__=='__main__':
-    main()
+    optimize_layers()
