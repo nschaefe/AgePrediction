@@ -39,6 +39,15 @@ test.matrix <- model.matrix(age ~., data=test)
 hist(train$age)
 
 
+#---------------least squares
+lm=lm(age~.,data=train)
+model=lm
+test.pred= predict(model,test)
+RMSE.test = rmse(test.pred, test$age)
+ME.test = mean(abs(test.pred- test$age))
+
+
+
 #-----------------lasso cross validation-------
 #lambda <- c(0, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.5, 0.8, 1, 1.5, 2, 3, 5,10,20,30)
 lambda <- seq(0.01, 0.08,by=0.001)
@@ -52,7 +61,6 @@ lasso <- train(age~.,data=train, method = "glmnet",
 
 model.lasso=lasso
 test.pred= predict(model.lasso,test)
-RMSE.test = rmse(test.pred, test$age)
 ME.test = mean(abs(test.pred- test$age))
 
 #lasso
@@ -108,6 +116,24 @@ thresh_singles=c(0,seq(0.5,120, by=1))
 thresh=thresh_5
 
 scores=classification_scores(test.pred,test$age,thresh)
+
+#----------per class error
+#age_grps=split(train, sort(as.numeric(train$age)))
+model=lm
+age_me<- data.frame("Age"=c(0), "ME"=c(0))
+test_age=unique(test$age)
+for (i in  seq_along(test_age)){
+age=test_age[i]
+age_grp= test[age==test$age,]
+#age_train.matrix <- model.matrix(age ~., data=age_grp)
+#age_grp.pred= unlist(predict(model,newdata=age_train.matrix))
+age_grp.pred= predict(model,newdata=age_grp)
+ME.age = mean(abs(as.matrix(age_grp.pred)- as.matrix(age_grp$age)))
+age_me=rbind(age_me,c(age,ME.age))
+}
+View(age_me)
+plot(age_me$Age,age_me$ME
+     )
 
 #----------------TODO--------------
 rf <- randomForest(age ~ ., data = train, ntree = 200, importance = TRUE)
