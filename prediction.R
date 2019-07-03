@@ -17,8 +17,7 @@ d=load_dataset(pokec.path,emb.path)
 sapply(d, class)
 d$user_id=NULL
 hist(d$age)
-
-is_train <- createDataPartition(d$age, p=0.9,list=FALSE)
+is_train <- createDataPartition(d$age, p=0.1,list=FALSE)
 train <- d[ is_train,]
 test  <- d[-is_train,]
 
@@ -120,20 +119,11 @@ scores=classification_scores(test.pred,test$age,thresh)
 #----------per class error
 #age_grps=split(train, sort(as.numeric(train$age)))
 model=lm
-age_me<- data.frame("Age"=c(0), "ME"=c(0))
-test_age=unique(test$age)
-for (i in  seq_along(test_age)){
-age=test_age[i]
-age_grp= test[age==test$age,]
-#age_train.matrix <- model.matrix(age ~., data=age_grp)
-#age_grp.pred= unlist(predict(model,newdata=age_train.matrix))
-age_grp.pred= predict(model,newdata=age_grp)
-ME.age = mean(abs(as.matrix(age_grp.pred)- as.matrix(age_grp$age)))
-age_me=rbind(age_me,c(age,ME.age))
-}
-View(age_me)
-plot(age_me$Age,age_me$ME
-     )
+
+age_actual =test$age
+age_pred= predict(model,newdata=test)
+
+class_me=per_class_ME(age_pred,age_actual)
 
 #----------------TODO--------------
 rf <- randomForest(age ~ ., data = train, ntree = 200, importance = TRUE)
