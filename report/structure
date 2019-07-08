@@ -1,0 +1,92 @@
+Age prediction in pokec (TODO)
+
+General Motivation:
+
+-inference (which features reveal something about age)
+-> to learn about correlations, connections, hints for causality, e.g. certain jobs are only done by old people (PROBLEM: Our feature set is weak to give big insights here)
+
+-feature importance
+-> feature extraction can be expensive, so on which features to focus on, reduce noise for better prediction
+
+-prediction performance
+-> if good, gives rise to privacy concerns
+
+----------------------------------
+
+Introduction:
+Overview about what we want to do:
+-use pokec
+-select feautres
+-correlations, correlation like measures
+-feature relevance in models (PROBLEM: which strategy to find useless features)
+-prediction, metrics 
+
+-----------
+
+Dataset:
+-size
+-feautres
+-relation graph
+-age distribution
+
+-------
+Preprocessing
+
+1.Pre Feauture Selection:
+-why these feautres
+-how we extracted
+
+2. outlier detection 
+
+-------
+
+-correlation, R2, linear models
+-colinearity
+
+$$-> inference conclusions
+
+............
+
+Prediction:
+
+Report performance for
+-random classifier
+-linear models
+-boosting
+-NN
+
+ON:
+-All features
+
+Final Model ON:
+-only graph embedding
+-on feature subsets to find irrelevant features
+
+$$-> conclude feature importance (Rank), combine results from correlation and colinearity,
+     recommendations for realistic datasets (facebook,twitter)? What is availabel in other OSNs
+.............
+
+Prediction results:
+-Different metrics and different models
+-how to address the biased dataset (PROBLEM: undersampling of final dataset is not really complete, better remove already in the graph)
+-prediction performance compared to related work
+
+$$-> conclude prediction results
+............
+
+Final Conclusions:
+summarize results and conclusions
+
+............
+
+Related Work
+
+____________________________________
+Remarks, Problems, Insights, Open questions:
+-What title? 
+-graph embedding is graph dependent (classifier not transferable)
+-Time is relative (we do everything relative to the time where data was gathered)
+-Undersampling technique is not optimal
+-How much data do we need?
+-We removed incomplete samples but kept graph embedding, why is this ok -> can be collected always, contains additional not biasing information?
+
