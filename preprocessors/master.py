@@ -5,9 +5,6 @@ import getopt
 
 # TODO
 # region
-# martial status
-# completed lvl of education
-
 
 def process(file_in, file_out):
     seperator_write = '\t'
@@ -69,12 +66,12 @@ def main(argv):
     inputfile = "../../data/soc-pokec-profiles.txt"
     outputfile = "../../data/out.csv"
 
-    if len(argv) != 2:
-        print('master.py  <inputfile>  <outputfile>')
-        sys.exit(2)
+    # if len(argv) != 2:
+    #     print('master.py  <inputfile>  <outputfile>')
+    #     sys.exit(2)
 
-    inputfile = argv[0]
-    outputfile = argv[1]
+    # inputfile = argv[0]
+    # outputfile = argv[1]
 
     file_in = open(inputfile)
     file_out = open(outputfile, 'w')

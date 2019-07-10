@@ -13,13 +13,21 @@ source("load_dataset.R")
 source("classification_scores.R")
 
 set.seed(123)
-d=load_dataset(pokec.path,emb.path)
+d <- load_dataset(pokec.path, emb.path)
+norm_feat <- c(3,5,6,7,8) # indices of columns
+d <- prepare_dataset(d,norm_feat)
+
+#date_min=min(min(d$registration),min(d$last_login))
+#date_max=max(max(d$registration),max(d$last_login))
+#d$registration=(d$registration-date_min)/date_max
+#d$last_login=(d$last_login-date_min)/date_max
+
 sapply(d, class)
 d$user_id=NULL
-hist(d$age)
-is_train <- createDataPartition(d$age, p=0.9,list=FALSE)
-train <- d[ is_train,]
-test  <- d[-is_train,]
+
+
+train <- d[d$is_train==1 ,]
+test  <- d[d$is_train==0,]
 
 is_valid <- createDataPartition(train$age, p=0.1,list=FALSE)
 valid <- train[ is_valid,]
@@ -40,6 +48,7 @@ hist(train$age)
 
 #---------------least squares
 lm=lm(age~.,data=train)
+summary(lm)
 model=lm
 test.pred= predict(model,test)
 RMSE.test = rmse(test.pred, test$age)
@@ -64,7 +73,7 @@ ME.test = mean(abs(test.pred- test$age))
 
 #lasso
 #lasso$bestTune
-#coef(lasso$finalModel,lasso$bestTune$lambda)
+coef(lasso$finalModel,lasso$bestTune$lambda)
 
 
 #-----boostin validation set approach---------- 
@@ -132,7 +141,11 @@ axis(2, at = ylabel, las = 1)
 box()
 
 #----------------TODO--------------
-rf <- randomForest(age ~ ., data = train, ntree = 200, importance = TRUE)
+rf <- randomForest(age ~ ., data = train, ntree = 500)
+model=rf
+test.pred= predict(model,test)
+RMSE.test = rmse(test.pred, test$age)
+ME.test = mean(abs(test.pred- test$age))
 
 hist(age_pred)
 hist(valid$age)
