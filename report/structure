@@ -3,7 +3,8 @@ Age prediction in pokec (TODO)
 General Motivation:
 
 -inference (which features reveal something about age)
--> to learn about correlations, connections, hints for causality, e.g. certain jobs are only done by old people (PROBLEM: Our feature set is weak to give big insights here)
+-> to learn about correlations, connections, hints for causality, e.g. certain jobs are only done by old people 
+(PROBLEM: Our feature set is weak to give big insights here)
 
 -feature importance
 -> feature extraction can be expensive, so on which features to focus on, reduce noise for better prediction
@@ -22,7 +23,7 @@ Overview about what we want to do:
 -prediction, metrics 
 
 -----------
-
+Kay
 Dataset:
 -size
 -feautres
@@ -30,6 +31,7 @@ Dataset:
 -age distribution
 
 -------
+kay
 Preprocessing
 
 1.Pre Feauture Selection:
@@ -39,7 +41,7 @@ Preprocessing
 2. outlier detection 
 
 -------
-
+Nico, Samim
 -correlation, R2, linear models
 -colinearity
 
@@ -48,11 +50,12 @@ $$-> inference conclusions
 ............
 
 Prediction:
-
+Nico
 Report performance for
 -random classifier
 -linear models
 -boosting
+Samim
 -NN
 
 ON:
@@ -61,11 +64,11 @@ ON:
 Final Model ON:
 -only graph embedding
 -on feature subsets to find irrelevant features
-
+Nico, Samim
 $$-> conclude feature importance (Rank), combine results from correlation and colinearity,
      recommendations for realistic datasets (facebook,twitter)? What is availabel in other OSNs
 .............
-
+Nico, Samim
 Prediction results:
 -Different metrics and different models
 -how to address the biased dataset (PROBLEM: undersampling of final dataset is not really complete, better remove already in the graph)
@@ -80,13 +83,25 @@ summarize results and conclusions
 ............
 
 Related Work
-
+This section should be after Motivation and before we begin with our method.
 ____________________________________
 Remarks, Problems, Insights, Open questions:
 -What title? 
--graph embedding is graph dependent (classifier not transferable)
--Time is relative (we do everything relative to the time where data was gathered)
+-graph embedding is graph dependent (classifier not transferable) 
+
+##What is the reason to state this. This is a known disadvantage of graph embeddings.
+There is a privacy risk nonetheless. Consider a user that uses the  services of an OSN like FB and does not 
+provide the age. If we show that graph embedding is the most powerful feature to predict age, then this becomes
+a factor in user privacy risk. FB or any other company that it provides data to can determine the user age.
+
+-Time is relative (we do everything relative to the time where data was gathered) 
+
+##This is true but why state this? If we know the time data is collected, we can just add the time to now and get their age now
+
 -Undersampling technique is not optimal
 -How much data do we need?
+## There could have been some nice experiments here. Like pruning the graph structure to calculate embeddings and 
+then see how well they work. Perhaps not enough time to do this.
+
 -We removed incomplete samples but kept graph embedding, why is this ok -> can be collected always, contains additional not biasing information?
 
