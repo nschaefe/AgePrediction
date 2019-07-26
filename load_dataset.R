@@ -40,7 +40,9 @@ prepare_dataset <- function(d,norm_feat, as_matrix = FALSE) {
   # remove_outlier
   d$height <- replace(d$height, d$height > 250, NA)
   d$weight <- replace(d$weight, d$weight > 500, NA)
-  # d$age <- replace(d$age, df$age < 7, NA)
+  #d$age <- replace(d$age, d$age > 65, NA)
+  #d$age <- replace(d$age, d$age < 5, NA)
+ 
   
   d <- d[complete.cases(d), ]
   
