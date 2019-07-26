@@ -7,7 +7,7 @@ library(hydroGOF)
 setwd("/home/nico/Dokumente/Entwicklung/Uni/PET/repo")
 
 source("load_dataset.R")
-source("classification_scores.R")
+source("per_class_metric.R")
 
 emb.path <- "../data/pokec_rel.emb"
 pokec.path <- "../data/out.csv"
