@@ -32,7 +32,7 @@ per_class_ME = function(age_pred,age_actual, age_thresh_low=-1,age_thresh_high=I
   }
   age_me=age_me[2:nrow(age_me),]
   age_me=age_me[order(age_me$Age),]
-  plot(age_me$Age,age_me$ME)
+ 
   return (age_me)
 }
 

@@ -37,6 +37,24 @@ train.matrix <- model.matrix(age ~ ., data = train)
 valid.matrix <- model.matrix(age ~ ., data = valid)
 test.matrix <- model.matrix(age ~ ., data = test)
 
+
+plot_cl_age_pred = function(age_me) {
+  plot(age_me$Age, age_me$ME, axes = FALSE, xlab = "Age", ylab = "MAE")
+  ylabel <- seq(0, 100, by = 2)
+  xlabel <- seq(0, 115, by = 5)
+  axis(1,at = xlabel,las = 1)
+  axis(2, at = ylabel, las = 1)
+  box()
+}
+
+#-----threshold classifier
+th_pred=rep(mean(train.full$age), length(test$age))
+thresh.MAE.test=mae(test$age,th_pred)
+thresh.class_MAE.test=per_class_ME(th_pred,test$age)
+thresh.mean_class_MAE.test <- mean(thresh.class_MAE.test$ME)
+
+plot_cl_age_pred(thresh.class_MAE.test)
+
 #---------------least squares
 lm <- lm(age ~ ., data = train.full)
 summary(lm)
@@ -45,29 +63,6 @@ lm.test.pred <- predict.lm(lm, test)
 lm.RMSE.test <- rmse(lm.test.pred, test$age)
 lm.MAE.test <- mae(lm.test.pred, test$age)
 lm.class_MAE.test <-  mean(per_class_ME(lm.test.pred,test$age)$ME)
-
-#-----threshold classifier
-thresh.MAE.test=mean(abs(test$age-mean(train.full$age)))
-
-#-----------------lasso cross validation-------
-# lambda <- c(0, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.5, 0.8, 1, 1.5, 2, 3, 5,10,20,30)
-lambda <- seq(0.01, 0.08, by = 0.001)
-#lambda=c(10000)
-cctrl1 <- trainControl(method = "cv", number = 10)
-lasso <- train(age ~ .,
-  data = train.full, method = "glmnet",
-  trControl = cctrl1,
-  tuneGrid = expand.grid(
-    alpha = 1,
-    lambda = lambda
-  )
-)
-
-lasso.test.pred <- predict(lasso, test)
-lasso.MAE.test <- mae(lasso.test.pred, test$age)
-lasso.class_MAE.test <- mean(per_class_ME(lasso.test.pred,test$age)$ME)
-
-coef(lasso$finalModel, lasso$bestTune$lambda)
 
 #-----boosting validation set approach---------- 
 
@@ -111,19 +106,3 @@ boost.MAE.test <- mean(abs(as.matrix(boost.test.pred) - as.matrix(test$age)))
 boost.class_MAE.test <-  mean(per_class_ME(boost.test.pred,test$age)$ME)
 boost.class_MAE.test_range <-  mean(per_class_ME(boost.test.pred,test$age,5,65)$ME)
 
-View(cbind(boost.test.pred, test$age))
-
-#----------per class error
-
-model <- model.boost
-age_pred <- boost.test.pred
-age_actual <- test$age
-
-age_me <- per_class_ME(age_pred, age_actual)
-avg_per_cl_error <- mean(age_me$ME)
-
-plot(age_me$Age, age_me$ME, axes = FALSE)
-ylabel <- seq(0, 100, by = 0.5)
-axis(1)
-axis(2, at = ylabel, las = 1)
-box()
