@@ -36,7 +36,7 @@ def body_to_height_weight_transform(body_field):
         height = na_value
     else:
         height = height.group(0) # take first match
-        height = re.sub('cm', '', height) # remove unit
+        height = re.sub(r'(\s*)cm', '', height) # remove unit
         # Finally check outlier
         if int(height) >= max_height or int(height) <= min_height:
             height = na_value
@@ -46,7 +46,7 @@ def body_to_height_weight_transform(body_field):
         weight = na_value
     else:
         weight = weight.group(0)
-        weight = re.sub('kg', '', weight)
+        weight = re.sub(r'(\s*)kg', '', weight)
         if int(weight) >= max_weight or int(weight) <= min_weight:
             weight = na_value
             
