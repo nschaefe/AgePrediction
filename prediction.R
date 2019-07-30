@@ -37,19 +37,25 @@ train.matrix <- model.matrix(age ~ ., data = train)
 valid.matrix <- model.matrix(age ~ ., data = valid)
 test.matrix <- model.matrix(age ~ ., data = test)
 
-
-plot_cl_age_pred = function(age_me) {
-  plot(age_me$Age, age_me$ME, axes = FALSE, xlab = "Age", ylab = "MAE")
+plot_cl_age_pred = function(age_me, initial=TRUE, col="black") {
+  if(initial){  
+  plot(age_me$Age, age_me$ME, axes = FALSE, xlab = "Age", ylab = "MAE", type = "l", col=col)
   ylabel <- seq(0, 100, by = 2)
-  xlabel <- seq(0, 115, by = 5)
+  xlabel <- seq(0, 115, by = 2)
   axis(1,at = xlabel,las = 1)
   axis(2, at = ylabel, las = 1)
   box()
+  }
+  else{
+    lines(age_me$Age, age_me$ME, col=col) 
+  }
+  
 }
 
-#-----threshold classifier
+#-----constant classifier-------
 th_pred=rep(mean(train.full$age), length(test$age))
 thresh.MAE.test=mae(test$age,th_pred)
+thresh.RMSE=rmse(test$age,th_pred)
 thresh.class_MAE.test=per_class_ME(th_pred,test$age)
 thresh.mean_class_MAE.test <- mean(thresh.class_MAE.test$ME)
 
@@ -62,7 +68,10 @@ summary(lm)
 lm.test.pred <- predict.lm(lm, test)
 lm.RMSE.test <- rmse(lm.test.pred, test$age)
 lm.MAE.test <- mae(lm.test.pred, test$age)
-lm.class_MAE.test <-  mean(per_class_ME(lm.test.pred,test$age)$ME)
+lm.class_MAE.test=per_class_ME(lm.test.pred,test$age)
+lm.mean_class_MAE.test <-  mean(lm.class_MAE.test$ME)
+
+plot_cl_age_pred(lm.class_MAE.test,FALSE, "red")
 
 #-----boosting validation set approach---------- 
 
@@ -103,6 +112,10 @@ model.boost <- model_list[best_index]
 boost.test.pred <- unlist(predict(model.boost, newdata = test.matrix))
 boost.RMSE.test <- rmse(as.matrix(boost.test.pred), as.matrix(test$age))
 boost.MAE.test <- mean(abs(as.matrix(boost.test.pred) - as.matrix(test$age)))
-boost.class_MAE.test <-  mean(per_class_ME(boost.test.pred,test$age)$ME)
-boost.class_MAE.test_range <-  mean(per_class_ME(boost.test.pred,test$age,5,65)$ME)
+boost.class_MAE_range.test=per_class_ME(boost.test.pred,test$age,5,65)
+boost.class_MAE.test=per_class_ME(boost.test.pred,test$age)
+boost.mean_class_MAE.test <-  mean(boost.class_MAE.test$ME)
+boost.mean_class_MAE_range.test <-  mean(boost.class_MAE_range.test$ME)
+
+plot_cl_age_pred(boost.class_MAE.test,FALSE,"blue")
 
