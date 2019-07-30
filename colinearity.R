@@ -40,14 +40,3 @@ for(i in 1:NCOL(ind)){
 names(x2) <- n
 # Print something
 x2[1]
-# ------------Logistic Regression--------------------
-# Used as a measure of corellation between a qualitative varible and quantitative variables
-# P values of a logistic regression model can be used as a mesure of correlation
-
-logreg_op = lapply(1:NCOL(d.categorical), function (i) summary (glm(d.categorical[, i] ~.,  data=d.numerical)))
-n2 = c()
-for(i in 1:NCOL(d.categorical)){
-  n2 = c(n2, c_names[i])
-}
-names(logreg_op) = n2
-logreg_op[1]

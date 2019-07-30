@@ -1,19 +1,10 @@
-loadPackage <- function(pkg){
-  if(!require(pkg, character.only = TRUE)) install.packages(pkg)
-  library(pkg, character.only = TRUE)
-}
-
-loadPackage("dplyr")
-
-path="data/out"
+path="/home/nico/Dokumente/Entwicklung/Uni/PET/data/out.csv"
 df=read.csv(file=path, header=TRUE, sep="\t")
 
-featurePresenceCorr <- function(dat){
-  x <- data.frame(sapply(dat %>% select(1:11), Negate(is.na)))
-  x$age <- dat$age
-  corrs <- sapply((x%>% select(1:11)), cor, y=x$age, use="complete.obs")
-  
-  return(corrs)
-}
+df[!is.na(df)]=1
+df[is.na(df)]=0
 
-y <- featurePresenceCorr(df)
+corrs=cor(df, method = c("pearson"))
+print(corrs)
+
+
