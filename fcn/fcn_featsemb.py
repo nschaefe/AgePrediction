@@ -167,7 +167,7 @@ def save_run(save_dict, save_dir):
     """
     with open(os.path.join(save_dir, 'run_description.txt'), 'w') as f:
 
-        keys_to_print = ['net', 'total_epochs', 'batch_size', 'best_validation_loss']
+        keys_to_print = ['net', 'total_epochs', 'lr', 'weight_decay', 'batch_size', 'best_validation_loss']
         for k in keys_to_print:
             print("_"*65, file=f)
             print(k, file=f)
@@ -184,6 +184,18 @@ def save_run(save_dict, save_dir):
     save_model(save_dict['net'], save_dir, final=True)
 
 
+def normalize_features(df, features):
+    """
+    Normalize the features of the dataframe. Only the features in the features list are normalized
+    :param df: input dataframe
+    :param features: list of features to normalize
+    :return: normalized dataframe
+    """
+    for feature in features:
+        df[feature] = (df[feature] - df[feature].min()) / (df[feature].max() - df[feature].min())
+    return df
+
+
 def main(hiddens, run_dir):
     """
     Does one complete run with the supplied hyperparameters (train, validate and test)
@@ -192,7 +204,7 @@ def main(hiddens, run_dir):
     """
     #  Some parameters
     batch_size = 2048
-    total_epochs = 20
+    total_epochs = 750
     valid_epoch, save_epoch = 1, 5
     run_id = 'run-' + datetime.now().strftime('%d_%m_%y_%H%M%S')
     save_dict = {}  # this dict stores the parameters we want to save
@@ -205,26 +217,40 @@ def main(hiddens, run_dir):
     train_iteration , val_iteration = 0, 0
 
     # Create dataset
-    df = pd.read_csv('./dataset/full_filtered.csv')
-    x = torch.tensor(df.values[:, 2:130].astype(np.float32)).cuda()
-    y = torch.tensor(df.values[:, -1].astype(np.float32)).cuda()
-    tensordata = torch.utils.data.TensorDataset(x, y)
+    df = pd.read_csv('dataset/age_pred_data_withage.csv')
+    df_train = df[df.is_train == 1]
+    df_test = df[df.is_train == 0]
+    # features = ['public', 'completion_percentage', 'gender',
+    #             'last_login', 'registration', 'height', 'weight', 'comp_edu', 'smoking',
+    #             'martial']
+    # df = normalize_features(df, features)
+    df_train = df_train.drop(['Unnamed: 0', 'user_id', 'X', 'X.Intercept.', 'is_train'], axis=1)
+    df_test = df_test.drop(['Unnamed: 0', 'user_id', 'X', 'X.Intercept.', 'is_train'], axis=1)
+    x_train = torch.tensor(df_train.values[:, :-2].astype(np.float32)).cuda()
+    indims = x_train.shape[1]
+    print(indims)
+    y_train = torch.tensor(df_train.values[:, -1].astype(np.float32)).cuda()
+    tensordata = torch.utils.data.TensorDataset(x_train, y_train)
+
+    x_test = torch.tensor(df_test.values[:, :-2].astype(np.float32)).cuda()
+    y_test = torch.tensor(df_test.values[:, -1].astype(np.float32)).cuda()
+    tensordata_test = torch.utils.data.TensorDataset(x_test, y_test)
 
     # Split the dataset
-    train_size = int(0.8 * len(x))
-    val_size = int(0.1* len(x))
-    test_size = len(x) -  train_size - val_size
-    trainset, valset, testset = random_split(tensordata, [train_size, val_size, test_size])
+    train_size = int(0.9 * len(x_train))
+    val_size = len(x_train) -  train_size
+    trainset, valset = random_split(tensordata, [train_size, val_size])
     trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     valloader = DataLoader(valset, batch_size=batch_size)
-    testloader = DataLoader(testset, batch_size=batch_size)
-    net = FCN(hiddens)
+    testloader = DataLoader(tensordata_test, batch_size=batch_size)
+    net = FCN(hiddens, indim=indims)
     net.cuda()
     criterion = nn.MSELoss()
     # optimizer = torch.optim.SGD(net.parameters(), lr=1e-4, momentum=0.9)
-    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4,  weight_decay=1e-5)
     # Write parameters to a file
-
+    save_dict['lr'] = 1e-4
+    save_dict['weight_decay'] = 1e-5
+    optimizer = torch.optim.Adam(net.parameters(), lr=save_dict['lr'],  weight_decay=save_dict['weight_decay'])
     best_valloss = 9e10  # Intitialize this to  be very large
     # Main training loop
     for i in range(total_epochs):
@@ -250,7 +276,7 @@ def main(hiddens, run_dir):
 # Hyper parameter optimization.
 # run main passing in hyper parameter that we optimize for
 def optimize_layers(indim=128):
-    run_dir = 'wtdecay'
+    run_dir = 'wtdecay-featsemb2'
     pth = os.path.join('runs', run_dir)
     if not os.path.exists(pth):
         os.mkdir(pth)
@@ -258,7 +284,7 @@ def optimize_layers(indim=128):
     num_layers = [1, 2, 3, 4, 8, 12]
 
     for layer_count in num_layers:
-        hiddens = [256]  # first layer always has 128
+        hiddens = [2048]  # first layer always has 128
         # Subsequent layers have neurons decreasing by a factor of 2
         neuron_num = indim
         for i in range(1, layer_count):
